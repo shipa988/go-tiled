@@ -27,11 +27,10 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"os"
-
-	"image/jpeg"
 
 	"image/gif"
 
@@ -52,14 +51,17 @@ type RendererEngine interface {
 	GetFinalImageSize() image.Rectangle
 	RotateTileImage(tile *tiled.LayerTile, img image.Image) image.Image
 	GetTilePosition(x, y int) image.Rectangle
+	GetTrueTilePosition(tileRect image.Rectangle,x, y int) image.Rectangle
 }
 
 // Renderer represents an rendering engine.
 type Renderer struct {
-	m         *tiled.Map
-	Result    *image.NRGBA // The image result after rendering using the Render functions.
-	tileCache map[uint32]image.Image
-	engine    RendererEngine
+	m                  *tiled.Map
+	Result             *image.NRGBA // The image result after rendering using the Render functions.
+	tileCache          map[uint32]image.Image
+	tileCollisionCache map[uint32]image.Rectangle
+	engine             RendererEngine
+	
 }
 
 type subImager interface {
@@ -103,15 +105,29 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (image.Image, error) {
 			}
 		}
 	} else {
-		sf, err := os.Open(tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source))
-		if err != nil {
-			return nil, err
-		}
-		defer sf.Close()
+		l := r.m.Loader
+		var img image.Image
+		if l == nil || l.FileSystem == nil {
+			sf, err := os.Open(tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source))
+			if err != nil {
+				return nil, err
+			}
+			img, _, err = image.Decode(sf)
+			if err != nil {
+				return nil, err
+			}
+			sf.Close()
+		} else {
+			sf, err := l.FileSystem.Open(tile.Tileset.GetFileFullPath(tile.Tileset.Image.Source))
 
-		img, _, err := image.Decode(sf)
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+			img, _, err = image.Decode(sf)
+			if err != nil {
+				return nil, err
+			}
+			sf.Close()
 		}
 
 		tilesetTileCount := tile.Tileset.TileCount
@@ -152,8 +168,21 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (image.Image, error) {
 	return r.engine.RotateTileImage(tile, timg), nil
 }
 
+type TileObject struct {
+	TileImage image.Image
+	TilePos image.Rectangle
+} 
+type Coll struct {
+	TileObjects []TileObject
+	ColmapX map[int][]int
+	ColmapY map[int][]int
+}
+
 // RenderLayer renders single map layer.
-func (r *Renderer) RenderLayer(index int) error {
+func (r *Renderer) RenderLayer(index int) (Coll, error) {
+	colmapX := map[int][]int{}
+	colmapY := map[int][]int{}
+	coll := Coll{}
 	layer := r.m.Layers[index]
 
 	var xs, xe, xi, ys, ye, yi int
@@ -165,7 +194,7 @@ func (r *Renderer) RenderLayer(index int) error {
 		ye = r.m.Height
 		yi = 1
 	} else {
-		return ErrUnsupportedRenderOrder
+		return coll, ErrUnsupportedRenderOrder
 	}
 
 	i := 0
@@ -178,10 +207,30 @@ func (r *Renderer) RenderLayer(index int) error {
 
 			img, err := r.getTileImage(layer.Tiles[i])
 			if err != nil {
-				return err
+				return coll, err
 			}
 
-			pos := r.engine.GetTilePosition(x, y)
+			pos := r.engine.GetTrueTilePosition(img.Bounds(),x, y)
+			//pos = r.engine.GetTilePosition(x, y)
+			for _,collision:=range layer.Tiles[i].Coll{
+				if collision.Max.Y != 0 {
+					pymin := pos.Min.Y + collision.Min.Y
+					pymax := pos.Min.Y + collision.Max.Y
+					pxmin := pos.Min.X + collision.Min.X
+					pxmax := pos.Min.X + collision.Max.X
+					for y := pymin; y <= pymax; y++ {
+						for x := pxmin; x <= pxmax; x++ {
+							colmapY[y] = append(colmapY[y], x)
+							colmapX[x] = append(colmapX[x], y)
+						}
+					}
+				}
+			}
+			coll.TileObjects = append(coll.TileObjects, TileObject{
+				TileImage: img,
+				TilePos:   pos,
+			})
+
 
 			if layer.Opacity < 1 {
 				mask := image.NewUniform(color.Alpha{uint8(layer.Opacity * 255)})
@@ -194,23 +243,44 @@ func (r *Renderer) RenderLayer(index int) error {
 			i++
 		}
 	}
-
-	return nil
+	//func (Rectangle) Overlaps
+	coll.ColmapY = colmapY
+	coll.ColmapX = colmapX
+	return coll, nil
 }
 
 // RenderVisibleLayers renders all visible map layers.
-func (r *Renderer) RenderVisibleLayers() error {
+func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
+	coll = Coll{
+		ColmapX: map[int][]int{},
+		ColmapY: map[int][]int{},
+	}
 	for i := range r.m.Layers {
 		if !r.m.Layers[i].Visible {
 			continue
 		}
 
-		if err := r.RenderLayer(i); err != nil {
-			return err
+		layerCollisions, err := r.RenderLayer(i)
+		if err != nil {
+			return coll, err
+		}
+		for k, v := range layerCollisions.ColmapX {
+			coll.ColmapX[k] = append(coll.ColmapX[k], v...)
+			//for x:=range v  {
+
+			//}
+
+		}
+		for k, v := range layerCollisions.ColmapY {
+			coll.ColmapY[k] = append(coll.ColmapY[k], v...)
+			//for y:=range v  {
+
+			//	}
+
 		}
 	}
 
-	return nil
+	return coll, nil
 }
 
 // Clear clears the render result to allow for separation of layers. For example, you can

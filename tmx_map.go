@@ -25,6 +25,7 @@ package tiled
 import (
 	"encoding/xml"
 	"errors"
+	"image"
 	"path/filepath"
 )
 
@@ -47,10 +48,10 @@ var (
 // layers are rendered by Tiled
 type Map struct {
 	// Loader for loading additional data
-	loader *Loader
+	Loader *Loader
 	// Base directory for loading additional data
 	baseDir string
-
+	//loader *Loader
 	// The TMX format version, generally 1.0.
 	Version string `xml:"title,attr"`
 	// Map orientation. Tiled supports "orthogonal", "isometric", "staggered" (since 0.9) and "hexagonal" (since 0.11).
@@ -100,7 +101,7 @@ func (m *Map) initTileset(ts *Tileset) (*Tileset, error) {
 		return ts, nil
 	}
 	sourcePath := m.GetFileFullPath(ts.Source)
-	f, err := m.loader.open(sourcePath)
+	f, err := m.Loader.open(sourcePath)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,29 @@ func (m *Map) initTileset(ts *Tileset) (*Tileset, error) {
 
 	return tse, nil
 }
+func GetTileCollision(id uint32, t *Tileset) (rs []image.Rectangle) {
+	for _, tile := range t.Tiles {
+		if tile == nil {
+			return []image.Rectangle{}
+		}
+		if tile.ID != id {
+			continue
+		}
+		if tile.ObjectGroups == nil {
+			return []image.Rectangle{}
+		}
+		for _,ob:= range tile.ObjectGroups[0].Objects{
+			h := int(ob.Height)
+			w := int(ob.Width)
+			x0 := int(ob.X)
+			y0 := int(ob.Y)
+			rs = append(rs, image.Rect(x0, y0, x0+w, y0+h))
+		}
 
+		return rs
+	}
+	return []image.Rectangle{}
+}
 // TileGIDToTile is used to find tile data by GID
 func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
 	if gid == 0 {
@@ -142,6 +165,7 @@ func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
 				VerticalFlip:   gid&tileVerticalFlipMask != 0,
 				DiagonalFlip:   gid&tileDiagonalFlipMask != 0,
 				Nil:            false,
+				Coll:GetTileCollision(gidBare - ts.FirstGID,ts),
 			}, nil
 		}
 	}
@@ -159,7 +183,7 @@ func (m *Map) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	type Alias Map
 
 	item := Alias{
-		loader:      m.loader,
+		Loader:      m.Loader,
 		baseDir:     m.baseDir,
 		RenderOrder: "right-down",
 	}

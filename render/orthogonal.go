@@ -59,6 +59,17 @@ func (e *OrthogonalRendererEngine) RotateTileImage(tile *tiled.LayerTile, img im
 
 	return timg
 }
+// GetTilePosition returns tile position in image.
+func (e *OrthogonalRendererEngine) GetTrueTilePosition(tileRect image.Rectangle,x, y int) image.Rectangle {
+	TileWidth:=tileRect.Max.X-tileRect.Min.X
+	TileHeight:=tileRect.Max.Y-tileRect.Min.Y
+	kw:=(e.m.TileWidth-TileWidth)/e.m.TileWidth
+	kh:=(e.m.TileHeight-TileHeight)/e.m.TileHeight
+	return image.Rect((x+kw)*e.m.TileWidth,
+		(y+kh)*e.m.TileWidth,
+		(x+1)*e.m.TileWidth,
+		(y+1)*e.m.TileHeight)
+}
 
 // GetTilePosition returns tile position in image.
 func (e *OrthogonalRendererEngine) GetTilePosition(x, y int) image.Rectangle {

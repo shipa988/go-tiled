@@ -65,7 +65,8 @@ func (l *Loader) LoadFromReader(baseDir string, r io.Reader) (*Map, error) {
 	d := xml.NewDecoder(r)
 
 	m := &Map{
-		loader:  l,
+		//loader:  l,
+		Loader:  l,
 		baseDir: baseDir,
 	}
 	if err := d.Decode(m); err != nil {
@@ -82,8 +83,13 @@ func (l *Loader) LoadFromFile(fileName string) (*Map, error) {
 		return nil, err
 	}
 	defer f.Close()
+	var dir string
+	if l == nil || l.FileSystem == nil {
+		dir, err = filepath.Abs(filepath.Dir(fileName))
+	}else {
+		dir = filepath.Dir(fileName)
+	}
 
-	dir, err := filepath.Abs(filepath.Dir(fileName))
 	if err != nil {
 		return nil, err
 	}

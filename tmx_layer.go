@@ -25,6 +25,7 @@ package tiled
 import (
 	"encoding/xml"
 	"errors"
+	"image"
 )
 
 // NilLayerTile is reusable layer tile that is nil
@@ -53,6 +54,8 @@ type LayerTile struct {
 	DiagonalFlip bool
 	// Tile is nil
 	Nil bool
+	//Collision cordinate
+	Coll []image.Rectangle
 }
 
 // IsNil returs if tile is nil
