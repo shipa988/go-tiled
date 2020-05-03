@@ -1,4 +1,4 @@
-module github.com/lafriks/go-tiled
+module github.com/shipa988/go-tiled
 
 go 1.14
 
