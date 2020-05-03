@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lafriks/go-tiled"
-	"github.com/lafriks/go-tiled/render"
+	"github.com/shipa988/go-tiled"
+	"github.com/shipa988/go-tiled/render"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 
-	if err = rend.RenderVisibleLayers(); err != nil {
+	if _,err = rend.RenderVisibleLayers(); err != nil {
 		fmt.Println(err)
 		return
 	}

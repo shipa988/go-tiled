@@ -1,13 +1,13 @@
 # go-tiled
 
-[![GoDoc](https://godoc.org/github.com/lafriks/go-tiled?status.svg)](https://godoc.org/github.com/lafriks/go-tiled)
+[![GoDoc](https://godoc.org/github.com/shipa988/go-tiled?status.svg)](https://godoc.org/github.com/shipa988/go-tiled)
 [![Build Status](https://cloud.drone.io/api/badges/lafriks/go-tiled/status.svg)](https://cloud.drone.io/lafriks/go-tiled)
 
 Go library to parse Tiled map editor file format (TMX) and render map to image. Currently supports only orthogonal rendering out-of-the-box.
 
 ## Installing
 
-    $ go get github.com/lafriks/go-tiled
+    $ go get github.com/shipa988/go-tiled
 
 You can use `go get -u` to update the package. You can also just import and start using the package directly if you're using Go modules, and Go will then download the package on first compilation.
 
@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lafriks/go-tiled"
-	"github.com/lafriks/go-tiled/render"
+	"github.com/shipa988/go-tiled"
+	"github.com/shipa988/go-tiled/render"
 )
 
 const mapPath = "maps/map.tmx" // Path to your Tiled Map.
@@ -60,7 +60,7 @@ func main() {
 
 ## Documentation
 
-For further documentation, see https://pkg.go.dev/github.com/lafriks/go-tiled or run:
+For further documentation, see https://pkg.go.dev/github.com/shipa988/go-tiled or run:
 
-    $ godoc github.com/lafriks/go-tiled
+    $ godoc github.com/shipa988/go-tiled
 

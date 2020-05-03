@@ -26,7 +26,7 @@ import (
 	"image"
 
 	"github.com/disintegration/imaging"
-	tiled "github.com/lafriks/go-tiled"
+	tiled "github.com/shipa988/go-tiled"
 )
 
 // OrthogonalRendererEngine represents orthogonal rendering engine.
