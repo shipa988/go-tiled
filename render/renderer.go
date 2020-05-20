@@ -174,14 +174,14 @@ type TileObject struct {
 } 
 type Coll struct {
 	TileObjects []TileObject
-	ColmapX map[int][]int
-	ColmapY map[int][]int
+	ColmapX map[float64][]float64
+	ColmapY map[float64][]float64
 }
 
 // RenderLayer renders single map layer.
 func (r *Renderer) RenderLayer(index int) (Coll, error) {
-	colmapX := map[int][]int{}
-	colmapY := map[int][]int{}
+	colmapX := map[float64][]float64{}
+	colmapY := map[float64][]float64{}
 	coll := Coll{}
 	layer := r.m.Layers[index]
 
@@ -214,10 +214,10 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 			//pos = r.engine.GetTilePosition(x, y)
 			for _,collision:=range layer.Tiles[i].Coll{
 				if collision.Max.Y != 0 {
-					pymin := pos.Min.Y + collision.Min.Y
-					pymax := pos.Min.Y + collision.Max.Y
-					pxmin := pos.Min.X + collision.Min.X
-					pxmax := pos.Min.X + collision.Max.X
+					pymin := float64(pos.Min.Y + collision.Min.Y)
+					pymax := float64(pos.Min.Y + collision.Max.Y)
+					pxmin := float64(pos.Min.X + collision.Min.X)
+					pxmax := float64(pos.Min.X + collision.Max.X)
 					for y := pymin; y <= pymax; y++ {
 						for x := pxmin; x <= pxmax; x++ {
 							colmapY[y] = append(colmapY[y], x)
@@ -252,8 +252,8 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 // RenderVisibleLayers renders all visible map layers.
 func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
 	coll = Coll{
-		ColmapX: map[int][]int{},
-		ColmapY: map[int][]int{},
+		ColmapX: map[float64][]float64{},
+		ColmapY: map[float64][]float64{},
 	}
 	for i := range r.m.Layers {
 		if !r.m.Layers[i].Visible {
