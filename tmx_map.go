@@ -121,6 +121,19 @@ func (m *Map) initTileset(ts *Tileset) (*Tileset, error) {
 
 	return tse, nil
 }
+func GetTileAnimation(id uint32, t *Tileset) []*AnimationFrame {
+	for _, tile := range t.Tiles {
+		if tile == nil {
+			return nil
+		}
+		if tile.ID != id {
+			continue
+		}
+		return tile.Animation
+	}
+	return nil
+}
+
 func GetTileCollision(id uint32, t *Tileset) (rs []image.Rectangle) {
 	for _, tile := range t.Tiles {
 		if tile == nil {
@@ -165,7 +178,8 @@ func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
 				VerticalFlip:   gid&tileVerticalFlipMask != 0,
 				DiagonalFlip:   gid&tileDiagonalFlipMask != 0,
 				Nil:            false,
-				Coll:GetTileCollision(gidBare - ts.FirstGID,ts),
+				Collision:      GetTileCollision(gidBare - ts.FirstGID,ts),
+				Animation: GetTileAnimation(gidBare - ts.FirstGID,ts),
 			}, nil
 		}
 	}

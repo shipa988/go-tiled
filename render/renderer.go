@@ -54,12 +54,27 @@ type RendererEngine interface {
 	GetTrueTilePosition(tileRect image.Rectangle, x, y int) image.Rectangle
 }
 
+type TileObject struct {
+	TileImage image.Image
+	TilePos   image.Rectangle
+}
+type AnimationTile struct {
+	Tile TileObject
+	Duration uint32
+}
+
+type LayerObjects struct {
+	Animation [] AnimationTile
+	TileObjects []TileObject
+	XCollision  map[float64][]float64
+	YCollision  map[float64][]float64
+}
+
 // Renderer represents an rendering engine.
 type Renderer struct {
 	m                  *tiled.Map
 	Result             *image.NRGBA // The image result after rendering using the Render functions.
 	tileCache          map[uint32]image.Image
-	tileCollisionCache map[uint32]image.Rectangle
 	engine             RendererEngine
 }
 
@@ -167,21 +182,11 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (image.Image, error) {
 	return r.engine.RotateTileImage(tile, timg), nil
 }
 
-type TileObject struct {
-	TileImage image.Image
-	TilePos   image.Rectangle
-}
-type Coll struct {
-	TileObjects []TileObject
-	ColmapX     map[float64][]float64
-	ColmapY     map[float64][]float64
-}
-
 // RenderLayer renders single map layer.
-func (r *Renderer) RenderLayer(index int) (Coll, error) {
+func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 	colmapX := map[float64][]float64{}
 	colmapY := map[float64][]float64{}
-	coll := Coll{}
+	lo:= LayerObjects{}
 	layer := r.m.Layers[index]
 
 	var xs, xe, xi, ys, ye, yi int
@@ -193,7 +198,7 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 		ye = r.m.Height
 		yi = 1
 	} else {
-		return coll, ErrUnsupportedRenderOrder
+		return lo, ErrUnsupportedRenderOrder
 	}
 
 	i := 0
@@ -206,12 +211,12 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 
 			img, err := r.getTileImage(layer.Tiles[i])
 			if err != nil {
-				return coll, err
+				return lo, err
 			}
-
+			//position of tile knowing it size
 			pos := r.engine.GetTrueTilePosition(img.Bounds(), x, y)
-			//pos = r.engine.GetTilePosition(x, y)
-			for _, collision := range layer.Tiles[i].Coll {
+			//get all collisions of this tile
+			for _, collision := range layer.Tiles[i].Collision {
 				if collision.Max.Y != 0 {
 					pymin := float64(pos.Min.Y + collision.Min.Y)
 					pymax := float64(pos.Min.Y + collision.Max.Y)
@@ -225,7 +230,22 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 					}
 				}
 			}
-			coll.TileObjects = append(coll.TileObjects, TileObject{
+			//get all animation of this tile
+			for _, animation := range layer.Tiles[i].Animation {
+				animg, err := r.getTileImage(layer.Tiles[animation.TileID])
+				if err != nil {
+					return lo, err
+				}
+				lo.Animation = append(lo.Animation, AnimationTile{
+					Tile:     TileObject{
+						TileImage: animg,
+						TilePos:   pos,
+					},
+					Duration: animation.Duration,
+				})
+			}
+			//get all tiles in this layer
+			lo.TileObjects = append(lo.TileObjects, TileObject{
 				TileImage: img,
 				TilePos:   pos,
 			})
@@ -242,16 +262,16 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 		}
 	}
 	//func (Rectangle) Overlaps
-	coll.ColmapY = colmapY
-	coll.ColmapX = colmapX
-	return coll, nil
+	lo.YCollision = colmapY
+	lo.XCollision = colmapX
+	return lo, nil
 }
 
 // RenderVisibleLayers renders all visible map layers.
-func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
-	coll = Coll{
-		ColmapX: map[float64][]float64{},
-		ColmapY: map[float64][]float64{},
+func (r *Renderer) RenderVisibleLayers() (coll LayerObjects, e error) {
+	coll = LayerObjects{
+		XCollision: map[float64][]float64{},
+		YCollision: map[float64][]float64{},
 	}
 
 	for i := range r.m.Layers {
@@ -264,11 +284,11 @@ func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
 			return coll, err
 		}
 
-		for k, v := range layerCollisions.ColmapX {
-			coll.ColmapX[k] = append(coll.ColmapX[k], v...)
+		for k, v := range layerCollisions.XCollision {
+			coll.XCollision[k] = append(coll.XCollision[k], v...)
 		}
-		for k, v := range layerCollisions.ColmapY {
-			coll.ColmapY[k] = append(coll.ColmapY[k], v...)
+		for k, v := range layerCollisions.YCollision {
+			coll.YCollision[k] = append(coll.YCollision[k], v...)
 		}
 	}
 	return coll, nil

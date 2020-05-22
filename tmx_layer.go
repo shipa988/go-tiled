@@ -55,7 +55,9 @@ type LayerTile struct {
 	// Tile is nil
 	Nil bool
 	//Collision cordinate
-	Coll []image.Rectangle
+	Collision []image.Rectangle
+	//Animation for tile
+	Animation []*AnimationFrame
 }
 
 // IsNil returs if tile is nil
