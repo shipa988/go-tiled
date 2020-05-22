@@ -59,7 +59,7 @@ type TileObject struct {
 	TilePos   image.Rectangle
 }
 type AnimationTile struct {
-	Tile TileObject
+	TileObject
 	Duration uint32
 }
 
