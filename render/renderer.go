@@ -237,7 +237,11 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 			if len(ltile.Animation)>0{
 				animgs:=[]image.Image{}
 				for _, animation := range ltile.Animation {
-					animg, err := r.getTileImage(layer.Tiles[animation.TileID])
+					t,err:= r.m.TileGIDToTile(animation.TileID)
+					if err!=nil{
+						return lo, err
+					}
+					animg, err := r.getTileImage(t)
 					if err == nil {
 						animgs = append(animgs,animg)
 					}
