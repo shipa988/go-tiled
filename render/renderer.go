@@ -24,7 +24,7 @@ package render
 
 import (
 	"errors"
-	tiled "github.com/shipa988/go-tiled"
+	"github.com/shipa988/go-tiled"
 	"image"
 	"image/color"
 	"image/draw"
