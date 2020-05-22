@@ -58,13 +58,14 @@ type TileObject struct {
 	TileImage image.Image
 	TilePos   image.Rectangle
 }
-type AnimationTiles struct {
-	TileObjects [] TileObject
+type AnimationTile struct {
+	TileImages [] image.Image
+	TilePos   image.Rectangle
 	Duration uint32
 }
 
 type LayerObjects struct {
-	Animation []AnimationTiles
+	Animation []AnimationTile
 	TileObjects []TileObject
 	XCollision  map[float64][]float64
 	YCollision  map[float64][]float64
@@ -234,20 +235,17 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 			}
 			//get all animation of this tile
 			if len(ltile.Animation)>0{
-				lo.Animation = append(lo.Animation, AnimationTiles{
-					TileObjects: func() []TileObject{
-						imgs:=[]TileObject{}
-						for _, animation := range ltile.Animation {
-						animg, err := r.getTileImage(layer.Tiles[animation.TileID])
-						if err == nil {
-							imgs = append(imgs, TileObject{
-								TileImage: animg,
-								TilePos:   pos,
-							})
-						}
+				animgs:=[]image.Image{}
+				for _, animation := range ltile.Animation {
+					animg, err := r.getTileImage(layer.Tiles[animation.TileID])
+					if err == nil {
+						animgs = append(animgs,animg)
 					}
-						return imgs}(),
-					Duration: ltile.Animation[0].Duration,
+				}
+				lo.Animation = append(lo.Animation,AnimationTile{
+					TileImages: animgs,
+					TilePos:    pos,
+					Duration:   0,
 				})
 			}
 
