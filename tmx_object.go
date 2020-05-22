@@ -141,10 +141,10 @@ func (m *Points) UnmarshalXMLAttr(attr xml.Attr) error {
 
 		var x, y float64
 		var err error
-		if x, err = strconv.ParseFloat(c[0],64); err != nil {
+		if x, err = strconv.ParseFloat(c[0], 64); err != nil {
 			return err
 		}
-		if y, err = strconv.ParseFloat(c[1],64); err != nil {
+		if y, err = strconv.ParseFloat(c[1], 64); err != nil {
 			return err
 		}
 		points[i] = &Point{
