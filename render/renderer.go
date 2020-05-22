@@ -270,7 +270,6 @@ func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
 		for k, v := range layerCollisions.ColmapY {
 			coll.ColmapY[k] = append(coll.ColmapY[k], v...)
 		}
-		coll.TileObjects = append(coll.TileObjects, layerCollisions.TileObjects...)
 	}
 	return coll, nil
 }
