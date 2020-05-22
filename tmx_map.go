@@ -145,7 +145,7 @@ func GetTileCollision(id uint32, t *Tileset) (rs []image.Rectangle) {
 		if tile.ObjectGroups == nil {
 			return []image.Rectangle{}
 		}
-		for _,ob:= range tile.ObjectGroups[0].Objects{
+		for _, ob := range tile.ObjectGroups[0].Objects {
 			h := int(ob.Height)
 			w := int(ob.Width)
 			x0 := int(ob.X)
@@ -157,6 +157,7 @@ func GetTileCollision(id uint32, t *Tileset) (rs []image.Rectangle) {
 	}
 	return []image.Rectangle{}
 }
+
 // TileGIDToTile is used to find tile data by GID
 func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
 	if gid == 0 {
@@ -178,8 +179,8 @@ func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
 				VerticalFlip:   gid&tileVerticalFlipMask != 0,
 				DiagonalFlip:   gid&tileDiagonalFlipMask != 0,
 				Nil:            false,
-				Collision:      GetTileCollision(gidBare - ts.FirstGID,ts),
-				Animation: GetTileAnimation(gidBare - ts.FirstGID,ts),
+				Collision:      GetTileCollision(gidBare-ts.FirstGID, ts),
+				Animation:      GetTileAnimation(gidBare-ts.FirstGID, ts),
 			}, nil
 		}
 	}

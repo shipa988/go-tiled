@@ -86,7 +86,7 @@ func (l *Loader) LoadFromFile(fileName string) (*Map, error) {
 	var dir string
 	if l == nil || l.FileSystem == nil {
 		dir, err = filepath.Abs(filepath.Dir(fileName))
-	}else {
+	} else {
 		dir = filepath.Dir(fileName)
 	}
 

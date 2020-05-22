@@ -58,13 +58,13 @@ type TileObject struct {
 	TileImage image.Image
 	TilePos   image.Rectangle
 }
-type AnimationTile struct {
-	TileObject
+type AnimationTiles struct {
+	TileObjects [] TileObject
 	Duration uint32
 }
 
 type LayerObjects struct {
-	Animation [] AnimationTile
+	Animation []AnimationTiles
 	TileObjects []TileObject
 	XCollision  map[float64][]float64
 	YCollision  map[float64][]float64
@@ -202,21 +202,23 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 	}
 
 	i := 0
+	var ltile *tiled.LayerTile
 	for y := ys; y*yi < ye; y = y + yi {
 		for x := xs; x*xi < xe; x = x + xi {
-			if layer.Tiles[i].IsNil() {
+			ltile= layer.Tiles[i]
+			if ltile.IsNil() {
 				i++
 				continue
 			}
 
-			img, err := r.getTileImage(layer.Tiles[i])
+			img, err := r.getTileImage(ltile)
 			if err != nil {
 				return lo, err
 			}
 			//position of tile knowing it size
 			pos := r.engine.GetTrueTilePosition(img.Bounds(), x, y)
 			//get all collisions of this tile
-			for _, collision := range layer.Tiles[i].Collision {
+			for _, collision := range ltile.Collision {
 				if collision.Max.Y != 0 {
 					pymin := float64(pos.Min.Y + collision.Min.Y)
 					pymax := float64(pos.Min.Y + collision.Max.Y)
@@ -231,19 +233,25 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 				}
 			}
 			//get all animation of this tile
-			for _, animation := range layer.Tiles[i].Animation {
-				animg, err := r.getTileImage(layer.Tiles[animation.TileID])
-				if err != nil {
-					return lo, err
-				}
-				lo.Animation = append(lo.Animation, AnimationTile{
-					Tile:     TileObject{
-						TileImage: animg,
-						TilePos:   pos,
-					},
-					Duration: animation.Duration,
+			if len(ltile.Animation)>0{
+				lo.Animation = append(lo.Animation, AnimationTiles{
+					TileObjects: func() []TileObject{
+						imgs:=[]TileObject{}
+						for _, animation := range ltile.Animation {
+						animg, err := r.getTileImage(layer.Tiles[animation.TileID])
+						if err == nil {
+							imgs = append(imgs, TileObject{
+								TileImage: animg,
+								TilePos:   pos,
+							})
+						}
+					}
+						return imgs}(),
+					Duration: ltile.Animation[0].Duration,
 				})
 			}
+
+
 			//get all tiles in this layer
 			lo.TileObjects = append(lo.TileObjects, TileObject{
 				TileImage: img,
