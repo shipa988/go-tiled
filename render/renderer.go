@@ -35,7 +35,6 @@ import (
 	"image/gif"
 
 	"github.com/disintegration/imaging"
-	"github.com/shipa988/go-tiled"
 )
 
 var (
@@ -51,7 +50,7 @@ type RendererEngine interface {
 	GetFinalImageSize() image.Rectangle
 	RotateTileImage(tile *tiled.LayerTile, img image.Image) image.Image
 	GetTilePosition(x, y int) image.Rectangle
-	GetTrueTilePosition(tileRect image.Rectangle,x, y int) image.Rectangle
+	GetTrueTilePosition(tileRect image.Rectangle, x, y int) image.Rectangle
 }
 
 // Renderer represents an rendering engine.
@@ -61,7 +60,6 @@ type Renderer struct {
 	tileCache          map[uint32]image.Image
 	tileCollisionCache map[uint32]image.Rectangle
 	engine             RendererEngine
-	
 }
 
 type subImager interface {
@@ -170,12 +168,12 @@ func (r *Renderer) getTileImage(tile *tiled.LayerTile) (image.Image, error) {
 
 type TileObject struct {
 	TileImage image.Image
-	TilePos image.Rectangle
-} 
+	TilePos   image.Rectangle
+}
 type Coll struct {
 	TileObjects []TileObject
-	ColmapX map[float64][]float64
-	ColmapY map[float64][]float64
+	ColmapX     map[float64][]float64
+	ColmapY     map[float64][]float64
 }
 
 // RenderLayer renders single map layer.
@@ -210,9 +208,9 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 				return coll, err
 			}
 
-			pos := r.engine.GetTrueTilePosition(img.Bounds(),x, y)
+			pos := r.engine.GetTrueTilePosition(img.Bounds(), x, y)
 			//pos = r.engine.GetTilePosition(x, y)
-			for _,collision:=range layer.Tiles[i].Coll{
+			for _, collision := range layer.Tiles[i].Coll {
 				if collision.Max.Y != 0 {
 					pymin := float64(pos.Min.Y + collision.Min.Y)
 					pymax := float64(pos.Min.Y + collision.Max.Y)
@@ -230,7 +228,6 @@ func (r *Renderer) RenderLayer(index int) (Coll, error) {
 				TileImage: img,
 				TilePos:   pos,
 			})
-
 
 			if layer.Opacity < 1 {
 				mask := image.NewUniform(color.Alpha{uint8(layer.Opacity * 255)})
@@ -255,6 +252,7 @@ func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
 		ColmapX: map[float64][]float64{},
 		ColmapY: map[float64][]float64{},
 	}
+
 	for i := range r.m.Layers {
 		if !r.m.Layers[i].Visible {
 			continue
@@ -264,22 +262,15 @@ func (r *Renderer) RenderVisibleLayers() (coll Coll, e error) {
 		if err != nil {
 			return coll, err
 		}
+
 		for k, v := range layerCollisions.ColmapX {
 			coll.ColmapX[k] = append(coll.ColmapX[k], v...)
-			//for x:=range v  {
-
-			//}
-
 		}
 		for k, v := range layerCollisions.ColmapY {
 			coll.ColmapY[k] = append(coll.ColmapY[k], v...)
-			//for y:=range v  {
-
-			//	}
-
 		}
+		coll.TileObjects = append(coll.TileObjects, layerCollisions.TileObjects...)
 	}
-
 	return coll, nil
 }
 
