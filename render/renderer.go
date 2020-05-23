@@ -251,7 +251,6 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 				animgs:=[]image.Image{img}
 				for n:=1;n< len(ltile.Animation);n++ {
 					lt,err:=r.m.TileGIDToTile(ltile.Animation[n].TileID+ltile.Tileset.FirstGID)
-
 					if err != nil {
 						continue
 					}
@@ -264,13 +263,13 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 
 				animationTile.TileImages=animgs
 				lo.Animation = append(lo.Animation, animationTile)
+			} else {
+				//get all tiles in this layer
+				lo.TileObjects = append(lo.TileObjects, TileObject{
+					TileImage: img,
+					TilePos:   pos,
+				})
 			}
-
-			//get all tiles in this layer
-			lo.TileObjects = append(lo.TileObjects, TileObject{
-				TileImage: img,
-				TilePos:   pos,
-			})
 
 			if layer.Opacity < 1 {
 				mask := image.NewUniform(color.Alpha{uint8(layer.Opacity * 255)})
