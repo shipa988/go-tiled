@@ -277,9 +277,6 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 	return lo, nil
 }
 
-func ()  {
-
-}
 
 // RenderVisibleLayers renders all visible map layers.
 func (r *Renderer) RenderVisibleLayers() (coll LayerObjects, e error) {

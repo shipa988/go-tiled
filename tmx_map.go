@@ -159,11 +159,6 @@ func GetTileCollision(id uint32, t *Tileset) (rs []image.Rectangle) {
 }
 // TileGIDToTile is used to find tile data by GID
 func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
-
-}
-
-// TileGIDToTile is used to find tile data by GID
-func (m *Map) TileGIDToTile(gid uint32) (*LayerTile, error) {
 	if gid == 0 {
 		return NilLayerTile, nil
 	}
