@@ -243,6 +243,7 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 							if err == nil {
 								animgs = append(animgs,animg)
 							}
+							break
 						}
 					}
 				}
