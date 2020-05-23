@@ -237,13 +237,13 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 			if len(ltile.Animation)>0{
 				animgs:=[]image.Image{}
 				for _, animation := range ltile.Animation {
-					t,err:= r.m.TileGIDToTile(animation.TileID)
-					if err!=nil{
-						return lo, err
-					}
-					animg, err := r.getTileImage(t)
-					if err == nil {
-						animgs = append(animgs,animg)
+					for _, tile := range layer.Tiles {
+						if tile!=nil && tile.ID==animation.TileID{
+							animg, err := r.getTileImage(tile)
+							if err == nil {
+								animgs = append(animgs,animg)
+							}
+						}
 					}
 				}
 				lo.Animation = append(lo.Animation,AnimationTile{
@@ -275,6 +275,10 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 	lo.YCollision = colmapY
 	lo.XCollision = colmapX
 	return lo, nil
+}
+
+func ()  {
+
 }
 
 // RenderVisibleLayers renders all visible map layers.
