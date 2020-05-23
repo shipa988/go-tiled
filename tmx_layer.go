@@ -30,7 +30,6 @@ import (
 
 // NilLayerTile is reusable layer tile that is nil
 var NilLayerTile = &LayerTile{Nil: true}
-
 var (
 	// ErrInvalidDecodedTileCount error is returned when layer data has invalid tile count
 	ErrInvalidDecodedTileCount = errors.New("tiled: invalid decoded tile count")

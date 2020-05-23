@@ -57,10 +57,12 @@ type RendererEngine interface {
 type TileObject struct {
 	TileImage image.Image
 	TilePos   image.Rectangle
+	TilePlane string
 }
 type AnimationTile struct {
 	TileImages [] image.Image
 	TilePos   image.Rectangle
+	TilePlane string
 	Duration uint32
 }
 
@@ -235,9 +237,21 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 			}
 			//get all animation of this tile
 			if len(ltile.Animation)>0{
+				animationTile := AnimationTile{
+					TileImages: nil,
+					TilePos:    pos,
+					Duration:   0,
+				}
+				for _, tile := range ltile.Tileset.Tiles {
+					if tile.ID==ltile.ID{
+						animationTile.TilePlane=tile.Type
+						break
+					}
+				}
 				animgs:=[]image.Image{img}
 				for n:=1;n< len(ltile.Animation);n++ {
 					lt,err:=r.m.TileGIDToTile(ltile.Animation[n].TileID+ltile.Tileset.FirstGID)
+
 					if err != nil {
 						continue
 					}
@@ -247,11 +261,9 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 					}
 					animgs = append(animgs, animg)
 				}
-				lo.Animation = append(lo.Animation,AnimationTile{
-					TileImages: animgs,
-					TilePos:    pos,
-					Duration:   0,
-				})
+
+				animationTile.TileImages=animgs
+				lo.Animation = append(lo.Animation, animationTile)
 			}
 
 			//get all tiles in this layer
