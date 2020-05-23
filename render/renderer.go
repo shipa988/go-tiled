@@ -235,17 +235,17 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 			}
 			//get all animation of this tile
 			if len(ltile.Animation)>0{
-				animgs:=[]image.Image{}
-				for _, animation := range ltile.Animation {
-					for _, tile := range layer.Tiles {
-						if tile!=nil && tile.ID==animation.TileID{
-							animg, err := r.getTileImage(tile)
-							if err == nil {
-								animgs = append(animgs,animg)
-							}
-							break
-						}
+				animgs:=[]image.Image{img}
+				for n:=1;n< len(ltile.Animation);n++ {
+					lt,err:=r.m.TileGIDToTile(ltile.Animation[n].TileID+ltile.Tileset.FirstGID)
+					if err != nil {
+						continue
 					}
+					animg, err := r.getTileImage(lt)
+					if err != nil {
+						continue
+					}
+					animgs = append(animgs, animg)
 				}
 				lo.Animation = append(lo.Animation,AnimationTile{
 					TileImages: animgs,
@@ -253,7 +253,6 @@ func (r *Renderer) RenderLayer(index int) (LayerObjects, error) {
 					Duration:   0,
 				})
 			}
-
 
 			//get all tiles in this layer
 			lo.TileObjects = append(lo.TileObjects, TileObject{
